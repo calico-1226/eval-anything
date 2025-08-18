@@ -1,0 +1,1 @@
+"""Flag Safety package initialization."""
