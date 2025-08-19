@@ -61,7 +61,7 @@ def parallel_processing_backend(
         if len(not_finished) == 0:
             continue
 
-        finished_futures, not_finished_futures_list = ray.wait(
+        finished_futures, not_finished_futures = ray.wait(
             [future for _, future in not_finished],
             num_returns=len(not_finished),
             timeout=1.0,

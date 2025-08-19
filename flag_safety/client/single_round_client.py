@@ -19,7 +19,7 @@ class SingleRoundClient:
 
     def __init__(
         self,
-        api_base: str,
+        base_url: str,
         model: str,
         api_key: str = "EMPTY",
         cache_dir: str = "./cache",
@@ -36,7 +36,7 @@ class SingleRoundClient:
             cache_dir: Directory to cache results
             num_workers: Maximum number of parallel workers
         """
-        self.api_base = api_base
+        self.api_base = base_url
         self.model = model
         self.api_key = api_key
         self.cache_dir = cache_dir

@@ -267,7 +267,7 @@ async def main():
         raise e
 
     client = SingleRoundClient(
-        api_base=api_base,
+        base_url=api_base,
         model=model_name,
         api_key=args.api_key,
         cache_dir=args.cache_dir,
