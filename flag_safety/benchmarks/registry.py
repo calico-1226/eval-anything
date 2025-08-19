@@ -1,6 +1,8 @@
 import logging
 from typing import Any, Dict, Type
 
+from flag_safety.benchmarks.base_benchmark import BaseBenchmark
+
 # Configure logger
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -64,7 +66,7 @@ class BenchmarkRegistry:
         return cls._registry.copy()
 
     @classmethod
-    def create(cls, name: str, **kwargs) -> Any:
+    def create(cls, name: str, **kwargs) -> BaseBenchmark:
         """
         Create an instance of a benchmark evaluator.
 

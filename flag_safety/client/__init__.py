@@ -1,4 +1,4 @@
-from flag_safety.client.response_client import ResponseClient
+from flag_safety.client.response_client import ResponseClient, InferenceConfig
 
 
-__all__ = ["ResponseClient"]
+__all__ = ["ResponseClient", "InferenceConfig"]

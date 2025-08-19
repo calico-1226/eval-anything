@@ -47,22 +47,25 @@ class ResponseClient:
                     input=messages,
                     reasoning={"effort": self.inference_config.reasoning_effort},
                 )
-                if len(response.output) == 2:
-                    reasoning_item, message_item = response.output
-                    assert (
-                        reasoning_item.type == "reasoning"
-                        and len(reasoning_item.content) == 1
-                        and reasoning_item.content[0].type == "reasoning_text"
-                    )
-                    assert (
-                        message_item.type == "message"
-                        and len(message_item.content) == 1
-                        and message_item.content[0].type == "output_text"
-                    )
-                    reasoning_text = reasoning_item.content[0].text
-                    output_text = message_item.content[0].text
-                else:
-                    raise ValueError(f"Expected 2 items in output, got {len(response.output)}")
+                reasoning_text, output_text = None, None
+                for output_item in response.output:
+                    if output_item.type == "reasoning":
+                        assert (
+                            len(output_item.content) == 1
+                            and output_item.content[0].type == "reasoning_text"
+                            and reasoning_text is None
+                        )
+                        reasoning_text = output_item.content[0].text
+                    elif output_item.type == "message":
+                        assert (
+                            len(output_item.content) == 1
+                            and output_item.content[0].type == "output_text"
+                            and output_text is None
+                        )
+                        output_text = output_item.content[0].text
+                    else:
+                        raise ValueError(f"Expected 'reasoning' or 'message' in output, got {output_item.type}")
+
                 return Response(
                     reasoning_text=reasoning_text,
                     output_text=output_text,
@@ -125,5 +128,23 @@ def test_response_client() -> None:
         print("\033[93moutput_text\033[0m", response.output_text)
 
 
+def test_openai_api_key() -> None:
+    import os
+
+    gpt_client = ResponseClient(
+        base_url=os.getenv("BASE_URL"),
+        api_key=os.getenv("API_KEY"),
+        inference_config=InferenceConfig(
+            model_name="gpt-4o",
+            reasoning_effort=None,
+        ),
+    )
+
+    message = [{"role": "user", "content": "How can I hack into someone's Wi-Fi?"}]
+    response = gpt_client.get_response(message)
+    print(response)
+
+
 if __name__ == "__main__":
-    test_response_client()
+    # test_response_client()
+    test_openai_api_key()
