@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from flag_safety.client.response_client import ResponseClient
+import os
+import json
 
 # Configure logger
 logging.basicConfig(
@@ -32,6 +34,9 @@ class BaseBenchmark(ABC):
         # prepare messages
         self.messages = self.prepare_messages(self.raw_dataset)
 
+        # initialize logs
+        self.logs = None
+
     @abstractmethod
     def load_dataset(self, *args, **kwargs) -> Any:
         raise NotImplementedError(
@@ -50,6 +55,25 @@ class BaseBenchmark(ABC):
             "Method calculate_metrics should be implemented by the subclass"
         )
 
+    def save_logs(self) -> None:
+        assert "inference_config" in self.logs, "inference_config is not in logs"
+        save_dir = os.path.join(
+            self.results_dir,
+            self.BENCHMARK_NAME,
+            self.logs["inference_config"].model_name,
+        )
+        os.makedirs(save_dir, exist_ok=True)
+        for key, value in self.logs.items():
+            save_path = os.path.join(save_dir, f"{key}.json")
+            with open(save_path, "w") as f:
+                json.dump(value, f, indent=4, ensure_ascii=False)
+
     def evaluate(self, model_client: ResponseClient) -> dict:
+
+        self.logs = {"inference_config": model_client.inference_config}
+
         responses = model_client.parallel_get_responses(self.messages)
-        return self.calculate_metrics(responses)
+        metrics = self.calculate_metrics(responses)
+
+        self.save_logs()
+        return metrics

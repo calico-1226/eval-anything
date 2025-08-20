@@ -14,6 +14,7 @@ __all__ = ["ResponseClient"]
 @dataclass
 class InferenceConfig:
     model_name: str
+    temperature: Optional[float] = 0.0
     reasoning_effort: Optional[Literal["minimal", "low", "medium", "high"]] = None
 
 
@@ -45,6 +46,7 @@ class ResponseClient:
                 response = openai_client.responses.create(
                     model=self.inference_config.model_name,
                     input=messages,
+                    temperature=self.inference_config.temperature,
                     reasoning={"effort": self.inference_config.reasoning_effort},
                 )
                 reasoning_text, output_text = None, None

@@ -18,13 +18,14 @@ model_client = ResponseClient(
     api_key=api_key,
     inference_config=InferenceConfig(
         model_name=model_name,
+        temperature=0.0,
         reasoning_effort=reasoning_effort,
     ),
 )
 
 # Create the evaluator
 evaluator_kwargs = {
-    "results_dir": "./results",
+    "results_dir": "./results/DoNotAnswer",
 }
 
 benchmark = BenchmarkRegistry.create("DoNotAnswer", **evaluator_kwargs)
