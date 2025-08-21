@@ -18,9 +18,9 @@ async def main():
     """Example usage of the VLLMServer class."""
     # Example configuration
     server = VLLMServer(
-        model_path="/share/project/juntao/Projects/oss-red-team/models/openai/gpt-oss-20b",
-        model_name="gpt-oss-20b",
-        port=8001,
+        model_path="/share/project/models/openai/gpt-oss-20b-base-uncensored",
+        model_name="gpt-oss-20b-base-uncensored",
+        port=8002,
         host="0.0.0.0",
         pipeline_parallel_size=1,
         tensor_parallel_size=4,

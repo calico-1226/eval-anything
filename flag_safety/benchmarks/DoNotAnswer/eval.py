@@ -100,7 +100,7 @@ class DoNotAnswer(BaseBenchmark):
 
     def __init__(
         self,
-        results_dir: str = "./results/DoNotAnswer",
+        results_dir: str = "./results/",
         judger_model: str = "gpt-4o",
     ):
         super().__init__(results_dir)

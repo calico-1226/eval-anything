@@ -5,8 +5,12 @@ python test.py
 from openai import OpenAI
 from openai.types.responses import Response as OpenAIResponse
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Callable, Literal, Optional
 from flag_safety.utils.parallel_processing import parallel_processing_backend
+
+from flag_safety.utils.uuid import generate_hash_uid
+import os
+import json
 
 __all__ = ["ResponseClient"]
 
@@ -14,8 +18,15 @@ __all__ = ["ResponseClient"]
 @dataclass
 class InferenceConfig:
     model_name: str
-    temperature: Optional[float] = 0.0
+    temperature: Optional[float] = None
     reasoning_effort: Optional[Literal["minimal", "low", "medium", "high"]] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "model_name": self.model_name,
+            "temperature": self.temperature,
+            "reasoning_effort": self.reasoning_effort,
+        }
 
 
 @dataclass
@@ -23,6 +34,130 @@ class Response:
     reasoning_text: str
     output_text: str
     raw_response: OpenAIResponse
+
+
+def get_response_from_cache(
+    messages: list[dict[str, str]],
+    inference_config: InferenceConfig,
+    cache_dir: str = "./.cache",
+    validity_checker: Callable[[Response], bool] | None = None,
+) -> Response | None:
+    # Resolve cache directory
+    os.makedirs(cache_dir, exist_ok=True)
+
+    # Build cache key
+    cache_key = generate_hash_uid(
+        {
+            "messages": messages,
+            "inference_config": inference_config.to_dict(),
+        }
+    )
+    cache_path = os.path.join(cache_dir, f"{cache_key}.json")
+
+    if not os.path.exists(cache_path):
+        return None
+
+    try:
+        with open(cache_path, encoding="utf-8") as f:
+            data = json.load(f)
+
+        reasoning_text = data.get("reasoning_text", None)
+        output_text = data.get("output_text", None)
+        raw_response_payload = data.get("raw_response", None)
+
+        raw_response_obj: Optional[OpenAIResponse] = None
+        if raw_response_payload is not None:
+            try:
+                # Reconstruct OpenAIResponse (Pydantic v2)
+                raw_response_obj = OpenAIResponse.model_validate(
+                    raw_response_payload
+                )
+            except Exception:
+                raw_response_obj = None
+
+        result = Response(
+            reasoning_text=reasoning_text,
+            output_text=output_text,
+            raw_response=raw_response_obj,  # type: ignore[arg-type]
+        )
+
+        if validity_checker is not None and not validity_checker(result):
+            # Invalidate bad cache
+            try:
+                os.remove(cache_path)
+            except OSError:
+                pass
+            return None
+
+        return result
+    except json.JSONDecodeError:
+        # Corrupt cache, remove and surface miss
+        try:
+            os.remove(cache_path)
+        except OSError:
+            pass
+        return None
+
+
+def save_response_to_cache(
+    response: Response,
+    inference_config: InferenceConfig,
+    cache_dir: str = "./.cache",
+    validity_checker: Optional[Callable[[Response], bool]] = None,
+) -> None:
+    # If cache directory is not provided, do nothing
+    os.makedirs(cache_dir, exist_ok=True)
+
+    # Respect validity checker if provided
+    if validity_checker is not None and not validity_checker(response):
+        return
+
+    # Build cache key from the messages are not available here; rely on raw_response input messages if present
+    # Prefer explicit fields when possible
+    key_payload = {
+        "inference_config": inference_config.to_dict(),
+    }
+    try:
+        # Attempt to include input messages from raw_response for key stability
+        if response.raw_response is not None and hasattr(
+            response.raw_response, "input"
+        ):
+            key_payload["messages"] = response.raw_response.input  # type: ignore[assignment]
+    except Exception:
+        pass
+
+    # Without messages, we cannot build a consistent key with the getter
+    if "messages" not in key_payload:
+        return
+
+    cache_key = generate_hash_uid(key_payload)
+    cache_path = os.path.join(cache_dir, f"{cache_key}.json")
+
+    # Prepare serializable payload
+    try:
+        raw_serialized = None
+        if response.raw_response is not None:
+            try:
+                raw_serialized = response.raw_response.model_dump()
+            except Exception:
+                try:
+                    raw_serialized = json.loads(
+                        response.raw_response.model_dump_json()
+                    )
+                except Exception:
+                    raw_serialized = None
+
+        payload = {
+            "reasoning_text": response.reasoning_text,
+            "output_text": response.output_text,
+            "raw_response": raw_serialized,
+        }
+
+        with open(cache_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False)
+    except Exception:
+        # Best-effort cache; silently ignore failures
+        return
 
 
 class ResponseClient:
@@ -66,7 +201,9 @@ class ResponseClient:
                         )
                         output_text = output_item.content[0].text
                     else:
-                        raise ValueError(f"Expected 'reasoning' or 'message' in output, got {output_item.type}")
+                        raise ValueError(
+                            f"Expected 'reasoning' or 'message' in output, got {output_item.type}"
+                        )
 
                 return Response(
                     reasoning_text=reasoning_text,

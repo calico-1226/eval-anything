@@ -60,17 +60,18 @@ class BaseBenchmark(ABC):
         save_dir = os.path.join(
             self.results_dir,
             self.BENCHMARK_NAME,
-            self.logs["inference_config"].model_name,
+            self.logs["inference_config"]["model_name"],
         )
         os.makedirs(save_dir, exist_ok=True)
         for key, value in self.logs.items():
             save_path = os.path.join(save_dir, f"{key}.json")
             with open(save_path, "w") as f:
                 json.dump(value, f, indent=4, ensure_ascii=False)
+        logger.info(f"Logs saved to {save_dir}")
 
     def evaluate(self, model_client: ResponseClient) -> dict:
 
-        self.logs = {"inference_config": model_client.inference_config}
+        self.logs = {"inference_config": model_client.inference_config.to_dict()}
 
         responses = model_client.parallel_get_responses(self.messages)
         metrics = self.calculate_metrics(responses)

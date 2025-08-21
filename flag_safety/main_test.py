@@ -8,27 +8,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-base_url = "http://localhost:8001/v1"
+base_url = "http://localhost:30000/v1"
 api_key = "EMPTY"
-model_name = "gpt-oss-20b"
-reasoning_effort = "high"
+model_name = "/share/project/models/openai/gpt-oss-20b"
+reasoning_effort = "medium"
 
 model_client = ResponseClient(
     base_url=base_url,
     api_key=api_key,
     inference_config=InferenceConfig(
         model_name=model_name,
-        temperature=0.0,
+        # temperature=0.001,
         reasoning_effort=reasoning_effort,
     ),
 )
 
 # Create the evaluator
 evaluator_kwargs = {
-    "results_dir": "./results/DoNotAnswer",
+    "results_dir": "./results",
 }
 
-benchmark = BenchmarkRegistry.create("DoNotAnswer", **evaluator_kwargs)
+benchmark = BenchmarkRegistry.create("DeceptionBench", **evaluator_kwargs)
 
 # Run the evaluation
 logger.info("Running evaluation on TruthfulQA benchmark")
