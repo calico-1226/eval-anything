@@ -61,9 +61,9 @@ def get_response_from_cache(
         with open(cache_path, encoding="utf-8") as f:
             data = json.load(f)
 
-        reasoning_text = data.get("reasoning_text", None)
-        output_text = data.get("output_text", None)
-        raw_response_payload = data.get("raw_response", None)
+        reasoning_text = data.get("reasoning_text")
+        output_text = data.get("output_text")
+        raw_response_payload = data.get("raw_response")
 
         raw_response_obj: Optional[OpenAIResponse] = None
         if raw_response_payload is not None:
