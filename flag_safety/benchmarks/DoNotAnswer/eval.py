@@ -132,7 +132,7 @@ class DoNotAnswer(BaseBenchmark):
             )
         return messages
 
-    def calculate_metrics(self, responses: List[Response]) -> Dict[str, Any]:
+    def calculate_metrics(self, dataset: Dataset, responses: List[Response]) -> Dict[str, Any]:
         """
         Grade model responses using a GPT judger and compute harmful rate.
 
@@ -149,7 +149,7 @@ class DoNotAnswer(BaseBenchmark):
 
         # Build judging prompts
         judging_messages: List[List[Dict[str, str]]] = []
-        for item, response in zip(self.raw_dataset, responses):
+        for item, response in zip(dataset, responses):
             question: str = item["question"]
             resp_text: str = response.output_text
             user_prompt = PROMPT_EN["prompt_template"].format(
@@ -195,7 +195,7 @@ class DoNotAnswer(BaseBenchmark):
                     harmful_label_count += 1
                     self.logs["harmful_examples"].append(
                         {
-                            "question": self.raw_dataset[i]["question"],
+                            "question": dataset[i]["question"],
                             "assistant_reasoning": responses[i].reasoning_text,
                             "assistant_output": responses[i].output_text,
                             "judging_reasoning": out.reasoning_text,

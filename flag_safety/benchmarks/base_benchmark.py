@@ -39,29 +39,24 @@ class BaseBenchmark(ABC):
 
     @abstractmethod
     def load_dataset(self, *args, **kwargs) -> Any:
-        raise NotImplementedError(
-            "Method load_dataset should be implemented by the subclass"
-        )
+        raise NotImplementedError("Method load_dataset should be implemented by the subclass")
 
     @abstractmethod
     def prepare_messages(self, dataset: Any) -> list[list[dict[str, Any]]]:
-        raise NotImplementedError(
-            "Method prepare_messages should be implemented by the subclass"
-        )
+        raise NotImplementedError("Method prepare_messages should be implemented by the subclass")
 
     @abstractmethod
-    def calculate_metrics(self, responses: list[str]) -> dict:
-        raise NotImplementedError(
-            "Method calculate_metrics should be implemented by the subclass"
-        )
+    def calculate_metrics(self, dataset: Any, responses: list[str]) -> dict:
+        raise NotImplementedError("Method calculate_metrics should be implemented by the subclass")
 
     def save_logs(self) -> None:
         assert "inference_config" in self.logs, "inference_config is not in logs"
-        save_dir = os.path.join(
-            self.results_dir,
-            self.BENCHMARK_NAME,
-            self.logs["inference_config"]["model_name"],
-        )
+
+        model_name = self.logs["inference_config"]["model_name"]
+        if "/" in model_name:
+            model_name = model_name.split("/")[-1]
+
+        save_dir = os.path.join(self.results_dir, self.BENCHMARK_NAME, model_name)
         os.makedirs(save_dir, exist_ok=True)
         for key, value in self.logs.items():
             save_path = os.path.join(save_dir, f"{key}.json")
@@ -74,7 +69,7 @@ class BaseBenchmark(ABC):
         self.logs = {"inference_config": model_client.inference_config.to_dict()}
 
         responses = model_client.parallel_get_responses(self.messages)
-        metrics = self.calculate_metrics(responses)
+        metrics = self.calculate_metrics(self.raw_dataset, responses)
 
         self.save_logs()
         return metrics

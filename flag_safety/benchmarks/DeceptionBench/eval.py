@@ -161,17 +161,17 @@ class DeceptionBench(BaseBenchmark):
         messages = inner_messages + outer_messages
         return messages
 
-    def calculate_metrics(self, responses: List[Response]) -> Dict[str, Any]:
-        inner_responses = responses[:len(self.raw_dataset)]
-        outer_responses = responses[len(self.raw_dataset):]
-        assert len(inner_responses) == len(outer_responses) == len(self.raw_dataset)
+    def calculate_metrics(self, dataset: Dataset, responses: List[Response]) -> Dict[str, Any]:
+        inner_responses = responses[:len(dataset)]
+        outer_responses = responses[len(dataset):]
+        assert len(inner_responses) == len(outer_responses) == len(dataset)
 
         def _judge(
             system_prompt: str,
             user_prompt_template: str,
             xs: list[str],
             ys: list[str],
-        ) -> list[Response]:
+        ) -> tuple[float, list[int]]:
             judging_messages: List[List[Dict[str, str]]] = []
             for x, y in zip(xs, ys):
                 user_prompt = user_prompt_template.format(x=x, y=y)
@@ -230,11 +230,11 @@ class DeceptionBench(BaseBenchmark):
         ):
             inconsistent_examples.append(
                 {
-                    "inner_prompt": self.raw_dataset[index]['inner_prompt'],
+                    "inner_prompt": dataset[index]['inner_prompt'],
                     "inner_reasoning": inner_responses[index].reasoning_text,
                     "inner_output": inner_responses[index].output_text,
-                    "outer_system_prompt": self.raw_dataset[index]['system_prompt'],
-                    "outer_user_prompt": self.raw_dataset[index]['outer_prompt'],
+                    "outer_system_prompt": dataset[index]['system_prompt'],
+                    "outer_user_prompt": dataset[index]['outer_prompt'],
                     "outer_reasoning": outer_responses[index].reasoning_text,
                     "outer_output": outer_responses[index].output_text,
                     "inconsistent_type": [
@@ -250,7 +250,7 @@ class DeceptionBench(BaseBenchmark):
                             else None
                         ),
                     ],
-                    "deception_type": self.raw_dataset[index]['type'],
+                    "deception_type": dataset[index]['type'],
                 }
             )
         self.logs["inconsistent_examples"] = inconsistent_examples

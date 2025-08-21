@@ -42,15 +42,12 @@ def get_response_from_cache(
     cache_dir: str = "./.cache",
     validity_checker: Callable[[Response], bool] | None = None,
 ) -> Response | None:
-    # Resolve cache directory
-    os.makedirs(cache_dir, exist_ok=True)
+    # # Resolve cache directory
+    # os.makedirs(cache_dir, exist_ok=True)
 
     # Build cache key
     cache_key = generate_hash_uid(
-        {
-            "messages": messages,
-            "inference_config": inference_config.to_dict(),
-        }
+        {"messages": messages, "inference_config": inference_config.to_dict()}
     )
     cache_path = os.path.join(cache_dir, f"{cache_key}.json")
 
@@ -68,12 +65,19 @@ def get_response_from_cache(
         raw_response_obj: Optional[OpenAIResponse] = None
         if raw_response_payload is not None:
             try:
-                # Reconstruct OpenAIResponse (Pydantic v2)
+                # Prefer strict validation when possible
                 raw_response_obj = OpenAIResponse.model_validate(
                     raw_response_payload
                 )
             except Exception:
-                raw_response_obj = None
+                # Fallback to unchecked construction for partially-specified payloads
+                try:
+                    if isinstance(raw_response_payload, dict):
+                        raw_response_obj = OpenAIResponse.model_construct(
+                            **raw_response_payload
+                        )
+                except Exception:
+                    raw_response_obj = None
 
         result = Response(
             reasoning_text=reasoning_text,
@@ -100,6 +104,7 @@ def get_response_from_cache(
 
 
 def save_response_to_cache(
+    messages: list[dict[str, str]],
     response: Response,
     inference_config: InferenceConfig,
     cache_dir: str = "./.cache",
@@ -112,25 +117,10 @@ def save_response_to_cache(
     if validity_checker is not None and not validity_checker(response):
         return
 
-    # Build cache key from the messages are not available here; rely on raw_response input messages if present
-    # Prefer explicit fields when possible
-    key_payload = {
-        "inference_config": inference_config.to_dict(),
-    }
-    try:
-        # Attempt to include input messages from raw_response for key stability
-        if response.raw_response is not None and hasattr(
-            response.raw_response, "input"
-        ):
-            key_payload["messages"] = response.raw_response.input  # type: ignore[assignment]
-    except Exception:
-        pass
-
-    # Without messages, we cannot build a consistent key with the getter
-    if "messages" not in key_payload:
-        return
-
-    cache_key = generate_hash_uid(key_payload)
+    # Build cache key using explicit messages and inference config
+    cache_key = generate_hash_uid(
+        {"messages": messages, "inference_config": inference_config.to_dict()}
+    )
     cache_path = os.path.join(cache_dir, f"{cache_key}.json")
 
     # Prepare serializable payload
@@ -284,6 +274,83 @@ def test_openai_api_key() -> None:
     print(response)
 
 
+def test_response_cache() -> None:
+    import shutil
+
+    temp_dir = "./.cache"
+    try:
+        messages = [{"role": "user", "content": "How can I hack into someone's Wi-Fi?"}]
+        infer_cfg = InferenceConfig(
+            model_name="/share/project/models/openai/gpt-oss-20b",
+            reasoning_effort="high",
+        )
+
+        # Initially, cache miss should return None
+        miss = get_response_from_cache(
+            messages=[{"role": "user", "content": "Dummy message"}], inference_config=infer_cfg, cache_dir=temp_dir
+        )
+        assert miss is None
+
+        gpt_client = ResponseClient(
+            base_url="http://localhost:30000/v1",
+            api_key="EMPTY",
+            inference_config=infer_cfg,
+        )
+
+        resp = gpt_client.get_response(messages)
+
+        # Save to cache with explicit messages as key
+        save_response_to_cache(
+            messages=messages, response=resp, inference_config=infer_cfg, cache_dir=temp_dir
+        )
+
+        # Now it should hit cache and return equivalent content
+        hit = get_response_from_cache(
+            messages=messages, inference_config=infer_cfg, cache_dir=temp_dir
+        )
+        assert hit is not None
+        assert hit.reasoning_text == resp.reasoning_text
+        assert hit.output_text == resp.output_text
+
+        # Validity checker that rejects cached content should invalidate and return None
+        def _reject(_: Response) -> bool:
+            return False
+
+        invalidated = get_response_from_cache(
+            messages=messages,
+            inference_config=infer_cfg,
+            cache_dir=temp_dir,
+            validity_checker=_reject,
+        )
+        assert invalidated is None
+
+        # After invalidation, it should miss again
+        miss_again = get_response_from_cache(
+            messages=messages, inference_config=infer_cfg, cache_dir=temp_dir
+        )
+        assert miss_again is None
+
+        # Save again and then corrupt the cache file
+        save_response_to_cache(
+            messages=messages, response=resp, inference_config=infer_cfg, cache_dir=temp_dir
+        )
+        cache_key = generate_hash_uid(
+            {"messages": messages, "inference_config": infer_cfg.to_dict()}
+        )
+        cache_path = os.path.join(temp_dir, f"{cache_key}.json")
+        with open(cache_path, "w", encoding="utf-8") as f:
+            f.write("{")  # invalid JSON
+
+        # Corrupted cache should be removed and return None
+        corrupted = get_response_from_cache(
+            messages=messages, inference_config=infer_cfg, cache_dir=temp_dir
+        )
+        assert corrupted is None
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
 if __name__ == "__main__":
     # test_response_client()
-    test_openai_api_key()
+    # test_openai_api_key()
+    test_response_cache()
