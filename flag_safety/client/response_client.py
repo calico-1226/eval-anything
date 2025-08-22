@@ -346,6 +346,7 @@ def test_response_cache() -> None:
             messages=messages, inference_config=infer_cfg, cache_dir=temp_dir
         )
         assert corrupted is None
+        print("Passed")
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
