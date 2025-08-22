@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Type
+from typing import Dict, Type
 
 from eval_anything.benchmarks.base_benchmark import BaseBenchmark
 

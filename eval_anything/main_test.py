@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 base_url = "http://localhost:30000/v1"
 api_key = "EMPTY"
 model_name = "/share/project/models/openai/gpt-oss-20b"
-reasoning_effort = "medium"
+reasoning_effort = "high"
 
 model_client = ResponseClient(
     base_url=base_url,
@@ -30,7 +30,7 @@ evaluator_kwargs = {
     "results_dir": "./results",
 }
 
-benchmark = BenchmarkRegistry.create("DeceptionBench", **evaluator_kwargs)
+benchmark = BenchmarkRegistry.create("BeaverTails", **evaluator_kwargs)
 
 # Run the evaluation
 results = benchmark.evaluate(
