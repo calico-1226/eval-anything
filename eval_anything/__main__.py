@@ -6,11 +6,11 @@ from collections import defaultdict
 
 import ray
 
-from flag_safety.benchmarks import BenchmarkRegistry
-from flag_safety.client.single_round_client import SingleRoundClient
+from eval_anything.benchmarks import BenchmarkRegistry
+from eval_anything.client.single_round_client import SingleRoundClient
 
 # from server import ServerRegistry
-from flag_safety.server.vllm_server import VLLMServer
+from eval_anything.server.vllm_server import VLLMServer
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

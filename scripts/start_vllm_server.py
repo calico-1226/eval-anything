@@ -6,7 +6,7 @@ import asyncio
 import logging
 import sys
 
-from flag_safety.server.vllm_server import VLLMServer
+from eval_anything.server.vllm_server import VLLMServer
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

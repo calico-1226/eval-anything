@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Type
 
-from flag_safety.benchmarks.base_benchmark import BaseBenchmark
+from eval_anything.benchmarks.base_benchmark import BaseBenchmark
 
 # Configure logger
 logging.basicConfig(

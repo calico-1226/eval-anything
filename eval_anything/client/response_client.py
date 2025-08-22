@@ -6,9 +6,9 @@ from openai import OpenAI
 from openai.types.responses import Response as OpenAIResponse
 from dataclasses import dataclass
 from typing import Callable, Literal, Optional
-from flag_safety.utils.parallel_processing import parallel_processing_backend
+from eval_anything.utils.parallel_processing import parallel_processing_backend
 
-from flag_safety.utils.uuid import generate_hash_uid
+from eval_anything.utils.uuid import generate_hash_uid
 import os
 import json
 

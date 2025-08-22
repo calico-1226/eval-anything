@@ -1,7 +1,7 @@
 import logging
 
-from flag_safety.benchmarks import BenchmarkRegistry
-from flag_safety.client import ResponseClient, InferenceConfig
+from eval_anything.benchmarks import BenchmarkRegistry
+from eval_anything.client import ResponseClient, InferenceConfig
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"

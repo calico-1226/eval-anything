@@ -12,7 +12,7 @@ PACKAGE_ROOT = os.path.dirname(CURRENT_DIR)
 if PACKAGE_ROOT not in sys.path:
     sys.path.insert(0, PACKAGE_ROOT)
 
-from flag_safety.client.response_client import (  # noqa: E402
+from eval_anything.client.response_client import (  # noqa: E402
     ResponseClient,
     InferenceConfig,
 )

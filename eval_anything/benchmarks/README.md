@@ -4,7 +4,7 @@ This document guides developers on how to integrate new benchmarks into this eva
 
 ## Integration Overview
 
-To integrate a new benchmark, you need to subclass the abstract base class [`BenchmarkEvaluator`](flag_safety/benchmarks/evaluation.py) and implement all of its abstract methods. The main steps are:
+To integrate a new benchmark, you need to subclass the abstract base class [`BenchmarkEvaluator`](eval_anything/benchmarks/evaluation.py) and implement all of its abstract methods. The main steps are:
 
 1.  Create a new benchmark directory
 2.  Implement the evaluator class (subclassing `BenchmarkEvaluator`)
@@ -95,7 +95,7 @@ from benchmarks.my_benchmark.eval import MyBenchmarkEvaluator
 
 ## Full Implementation Example
 
-For a complete implementation example, please refer to [latent_jailbreak](flag_safety/benchmarks/latent_jailbreak) for T2T and [mmmu](flag_safety/benchmarks/mmmu) for TI2T.
+For a complete implementation example, please refer to [latent_jailbreak](eval_anything/benchmarks/latent_jailbreak) for T2T and [mmmu](eval_anything/benchmarks/mmmu) for TI2T.
 
 ## Testing the New Benchmark
 

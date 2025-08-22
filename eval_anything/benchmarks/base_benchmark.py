@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
-from flag_safety.client.response_client import ResponseClient
+from eval_anything.client.response_client import ResponseClient
 import os
 import json
 

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
-from flag_safety.utils.uuid import generate_hash_uid
+from eval_anything.utils.uuid import generate_hash_uid
 
 logger = logging.getLogger(__name__)
 

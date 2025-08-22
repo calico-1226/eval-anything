@@ -10,7 +10,7 @@ import importlib
 import logging
 
 # First import the registry
-from flag_safety.benchmarks.registry import BenchmarkRegistry
+from eval_anything.benchmarks.registry import BenchmarkRegistry
 
 # use `LAZY_IMPORT` in `__init__.py` of each sub-package to import the evaluator class
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def _discover_and_import_benchmarks() -> list:
 
     discovered_exports = []
     base_dir = os.path.dirname(__file__)
-    base_pkg = __name__  # e.g., "flag_safety.benchmarks"
+    base_pkg = __name__  # e.g., "eval_anything.benchmarks"
 
     for entry in os.listdir(base_dir):
         entry_path = os.path.join(base_dir, entry)
@@ -58,4 +58,3 @@ __all__ = [
     "BenchmarkRegistry",
     *_exported_classes,
 ]
-

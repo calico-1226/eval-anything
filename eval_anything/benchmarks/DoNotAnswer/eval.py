@@ -2,9 +2,9 @@ import os
 import re
 from typing import Any, Dict, List
 
-from flag_safety.benchmarks.base_benchmark import BaseBenchmark
-from flag_safety.benchmarks.registry import BenchmarkRegistry
-from flag_safety.client.response_client import (
+from eval_anything.benchmarks.base_benchmark import BaseBenchmark
+from eval_anything.benchmarks.registry import BenchmarkRegistry
+from eval_anything.client.response_client import (
     ResponseClient,
     Response,
     InferenceConfig,
