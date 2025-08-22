@@ -33,7 +33,6 @@ evaluator_kwargs = {
 benchmark = BenchmarkRegistry.create("DeceptionBench", **evaluator_kwargs)
 
 # Run the evaluation
-logger.info("Running evaluation on TruthfulQA benchmark")
 results = benchmark.evaluate(
     model_client=model_client,
 )

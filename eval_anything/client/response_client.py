@@ -153,6 +153,7 @@ class ResponseClient:
         enable_cache: bool = False,
         cache_dir: str = "./.cache",
         validity_checker: Optional[Callable[[Response], bool]] = None,
+        max_try: int = 5,
     ) -> None:
         self.base_url = base_url
         self.api_key = api_key
@@ -160,6 +161,7 @@ class ResponseClient:
         self.enable_cache = enable_cache
         self.cache_dir = cache_dir
         self.validity_checker = validity_checker
+        self.max_try = max_try
 
     def get_response(
         self,
@@ -176,7 +178,7 @@ class ResponseClient:
                 return response
 
         openai_client = OpenAI(base_url=self.base_url, api_key=self.api_key)
-        while True:
+        for _ in range(self.max_try):
             try:
                 response = openai_client.responses.create(
                     model=self.inference_config.model_name,
