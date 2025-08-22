@@ -66,16 +66,12 @@ def get_response_from_cache(
         if raw_response_payload is not None:
             try:
                 # Prefer strict validation when possible
-                raw_response_obj = OpenAIResponse.model_validate(
-                    raw_response_payload
-                )
+                raw_response_obj = OpenAIResponse.model_validate(raw_response_payload)
             except Exception:
                 # Fallback to unchecked construction for partially-specified payloads
                 try:
                     if isinstance(raw_response_payload, dict):
-                        raw_response_obj = OpenAIResponse.model_construct(
-                            **raw_response_payload
-                        )
+                        raw_response_obj = OpenAIResponse.model_construct(**raw_response_payload)
                 except Exception:
                     raw_response_obj = None
 
@@ -131,9 +127,7 @@ def save_response_to_cache(
                 raw_serialized = response.raw_response.model_dump()
             except Exception:
                 try:
-                    raw_serialized = json.loads(
-                        response.raw_response.model_dump_json()
-                    )
+                    raw_serialized = json.loads(response.raw_response.model_dump_json())
                 except Exception:
                     raw_serialized = None
 
@@ -156,15 +150,31 @@ class ResponseClient:
         base_url: str,
         api_key: str,
         inference_config: InferenceConfig,
+        enable_cache: bool = False,
+        cache_dir: str = "./.cache",
+        validity_checker: Optional[Callable[[Response], bool]] = None,
     ) -> None:
         self.base_url = base_url
         self.api_key = api_key
         self.inference_config = inference_config
+        self.enable_cache = enable_cache
+        self.cache_dir = cache_dir
+        self.validity_checker = validity_checker
 
     def get_response(
         self,
         messages: list[dict[str, str]],
     ) -> Response:
+        if self.enable_cache:
+            response = get_response_from_cache(
+                messages=messages,
+                inference_config=self.inference_config,
+                cache_dir=self.cache_dir,
+                validity_checker=self.validity_checker,
+            )
+            if response is not None:
+                return response
+
         openai_client = OpenAI(base_url=self.base_url, api_key=self.api_key)
         while True:
             try:
@@ -195,11 +205,22 @@ class ResponseClient:
                             f"Expected 'reasoning' or 'message' in output, got {output_item.type}"
                         )
 
-                return Response(
+                response = Response(
                     reasoning_text=reasoning_text,
                     output_text=output_text,
                     raw_response=response,
                 )
+
+                if self.enable_cache:
+                    save_response_to_cache(
+                        messages=messages,
+                        response=response,
+                        inference_config=self.inference_config,
+                        cache_dir=self.cache_dir,
+                        validity_checker=self.validity_checker,
+                    )
+
+                return response
             except Exception as e:
                 print(f"Error: {e}")
                 print("Retrying...")
@@ -287,7 +308,9 @@ def test_response_cache() -> None:
 
         # Initially, cache miss should return None
         miss = get_response_from_cache(
-            messages=[{"role": "user", "content": "Dummy message"}], inference_config=infer_cfg, cache_dir=temp_dir
+            messages=[{"role": "user", "content": "Dummy message"}],
+            inference_config=infer_cfg,
+            cache_dir=temp_dir,
         )
         assert miss is None
 

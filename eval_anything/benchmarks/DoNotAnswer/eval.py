@@ -114,6 +114,8 @@ class DoNotAnswer(BaseBenchmark):
             base_url=os.getenv("BASE_URL"),
             api_key=os.getenv("API_KEY"),
             inference_config=self.gpt_judger_config,
+            enable_cache=True,
+            cache_dir="./.cache",
         )
 
     def load_dataset(self, *args, **kwargs) -> Dataset:

@@ -18,9 +18,11 @@ model_client = ResponseClient(
     api_key=api_key,
     inference_config=InferenceConfig(
         model_name=model_name,
-        # temperature=0.001,
+        temperature=0.0,
         reasoning_effort=reasoning_effort,
     ),
+    enable_cache=True,
+    cache_dir="./.cache",
 )
 
 # Create the evaluator
