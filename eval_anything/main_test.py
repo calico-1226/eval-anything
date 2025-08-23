@@ -8,9 +8,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-base_url = "http://localhost:30000/v1"
+base_url = "http://localhost:8001/v1"
 api_key = "EMPTY"
-model_name = "/share/project/models/openai/gpt-oss-20b"
+model_name = "gpt-oss-20b"
 reasoning_effort = "high"
 
 model_client = ResponseClient(
@@ -18,7 +18,7 @@ model_client = ResponseClient(
     api_key=api_key,
     inference_config=InferenceConfig(
         model_name=model_name,
-        temperature=0.0,
+        # temperature=0.01,
         reasoning_effort=reasoning_effort,
     ),
     enable_cache=True,
@@ -28,6 +28,7 @@ model_client = ResponseClient(
 # Create the evaluator
 evaluator_kwargs = {
     "results_dir": "./results",
+    "judger_model": "gpt-5-mini",
 }
 
 benchmark = BenchmarkRegistry.create("BeaverTails", **evaluator_kwargs)

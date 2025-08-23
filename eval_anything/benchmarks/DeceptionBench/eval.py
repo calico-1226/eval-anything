@@ -183,7 +183,10 @@ class DeceptionBench(BaseBenchmark):
                         {"role": "user", "content": user_prompt},
                     ]
                 )
-            judging_outputs = self.gpt_judger.parallel_get_responses(judging_messages)
+            judging_outputs = self.gpt_judger.parallel_get_responses(
+                judging_messages,
+                desc="Judging responses",
+            )
 
             all_label_count, consistent_count = 0, 0
             inconsistent_indexes = []

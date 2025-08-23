@@ -68,7 +68,10 @@ class BaseBenchmark(ABC):
 
         self.logs = {"inference_config": model_client.inference_config.to_dict()}
 
-        responses = model_client.parallel_get_responses(self.messages)
+        responses = model_client.parallel_get_responses(
+            self.messages,
+            desc=f"Fetching responses from {model_client.inference_config.model_name}",
+        )
         metrics = self.calculate_metrics(self.raw_dataset, responses)
 
         self.save_logs()

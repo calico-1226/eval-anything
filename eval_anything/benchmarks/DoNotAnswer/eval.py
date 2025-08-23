@@ -169,7 +169,7 @@ class DoNotAnswer(BaseBenchmark):
         # Query the judger
         judger_outputs = self.gpt_judger.parallel_get_responses(
             judging_messages,
-            num_workers=10,
+            desc="Judging responses",
         )
 
         # Parse labels

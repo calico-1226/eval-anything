@@ -178,7 +178,8 @@ class ResponseClient:
                 return response
 
         openai_client = OpenAI(base_url=self.base_url, api_key=self.api_key)
-        for _ in range(self.max_try):
+        # for _ in range(self.max_try):
+        while True:
             try:
                 response = openai_client.responses.create(
                     model=self.inference_config.model_name,
@@ -189,6 +190,8 @@ class ResponseClient:
                 reasoning_text, output_text = None, None
                 for output_item in response.output:
                     if output_item.type == "reasoning":
+                        if output_item.content is None:
+                            continue
                         assert (
                             len(output_item.content) == 1
                             and output_item.content[0].type == "reasoning_text"
@@ -196,6 +199,8 @@ class ResponseClient:
                         )
                         reasoning_text = output_item.content[0].text
                     elif output_item.type == "message":
+                        if output_item.content is None:
+                            continue
                         assert (
                             len(output_item.content) == 1
                             and output_item.content[0].type == "output_text"
@@ -232,12 +237,13 @@ class ResponseClient:
         self,
         messages: list[list[dict[str, str]]],
         num_workers: int = 10,
+        desc: str = "Fetching responses",
     ) -> list[Response]:
         return parallel_processing_backend(
             params=messages,
             fn=self.get_response,
             num_workers=num_workers,
-            desc="Fetching responses",
+            desc=desc,
         )
 
 
@@ -287,7 +293,7 @@ def test_openai_api_key() -> None:
         base_url=os.getenv("BASE_URL"),
         api_key=os.getenv("API_KEY"),
         inference_config=InferenceConfig(
-            model_name="gpt-4o",
+            model_name="gpt-5-mini",
             reasoning_effort=None,
         ),
     )
@@ -378,5 +384,5 @@ def test_response_cache() -> None:
 
 if __name__ == "__main__":
     # test_response_client()
-    # test_openai_api_key()
-    test_response_cache()
+    test_openai_api_key()
+    # test_response_cache()

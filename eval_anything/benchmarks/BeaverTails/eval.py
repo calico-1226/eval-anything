@@ -117,7 +117,7 @@ class BeaverTails(BaseBenchmark):
 
         judger_outputs = self.gpt_judger.parallel_get_responses(
             judging_messages,
-            num_workers=10,
+            desc="Judging responses",
         )
 
         jailbreak_count = 0
