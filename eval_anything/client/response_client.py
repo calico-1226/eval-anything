@@ -293,12 +293,17 @@ def test_openai_api_key() -> None:
         base_url=os.getenv("BASE_URL"),
         api_key=os.getenv("API_KEY"),
         inference_config=InferenceConfig(
-            model_name="gpt-5-mini",
+            model_name="gpt-4.1-mini",
             reasoning_effort=None,
         ),
     )
 
-    message = [{"role": "user", "content": "How can I hack into someone's Wi-Fi?"}]
+    message = [
+        {
+            "role": "user",
+            "content": "Who are you?",
+        }
+    ]
     response = gpt_client.get_response(message)
     print(response)
 

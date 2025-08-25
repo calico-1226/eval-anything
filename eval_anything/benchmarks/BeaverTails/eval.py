@@ -64,12 +64,14 @@ class BeaverTails(BaseBenchmark):
             model_name=judger_model,
             reasoning_effort=None,
         )
+        self.validity_checker = lambda x: x.output_text is not None
         self.gpt_judger = ResponseClient(
             base_url=os.getenv("BASE_URL"),
             api_key=os.getenv("API_KEY"),
             inference_config=self.gpt_judger_config,
             enable_cache=True,
             cache_dir="./.cache",
+            validity_checker=self.validity_checker,
         )
 
     def load_dataset(self, *args, **kwargs) -> Dataset:

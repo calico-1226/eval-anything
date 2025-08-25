@@ -23,15 +23,16 @@ model_client = ResponseClient(
     ),
     enable_cache=True,
     cache_dir="./.cache",
+    validity_checker=lambda x: x.output_text is not None,
 )
 
 # Create the evaluator
 evaluator_kwargs = {
     "results_dir": "./results",
-    "judger_model": "gpt-5-mini",
+    "judger_model": "gpt-4o-mini",
 }
 
-benchmark = BenchmarkRegistry.create("BeaverTails", **evaluator_kwargs)
+benchmark = BenchmarkRegistry.create("DoAnythingNow", **evaluator_kwargs)
 
 # Run the evaluation
 results = benchmark.evaluate(
